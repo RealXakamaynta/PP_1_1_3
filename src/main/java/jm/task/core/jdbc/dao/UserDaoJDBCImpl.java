@@ -51,12 +51,10 @@ public class UserDaoJDBCImpl implements UserDao {
 
     @Override
     public void saveUser(String name, String lastName, byte age) {
-        String sql = "INSERT INTO userstable (name, lastName, age) VALUES (?, ?, ?)";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, name);
-            ps.setString(2, lastName);
-            ps.setByte(3, age);
-            ps.executeUpdate();
+        String sql = String.format("INSERT INTO userstable (name, lastName, age) VALUES ('%s', '%s', %d)",
+                name, lastName, age);
+        try (Statement statement = connection.createStatement()) {
+            statement.executeUpdate(sql);
             logger.info(String.format("User с именем – %s добавлен в базу данных", name));
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Failed to save user", e);
@@ -65,10 +63,9 @@ public class UserDaoJDBCImpl implements UserDao {
 
     @Override
     public void removeUserById(long id) {
-        try (PreparedStatement ps = connection.prepareStatement(
-                "DELETE FROM userstable WHERE id = ?")) {
-            ps.setLong(1, id);
-            ps.executeUpdate();
+        String sql = "DELETE FROM userstable WHERE id = " + id;
+        try (Statement statement = connection.createStatement()) {
+            statement.executeUpdate(sql);
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Failed to remove user", e);
         }
@@ -77,8 +74,7 @@ public class UserDaoJDBCImpl implements UserDao {
     @Override
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
-        try (ResultSet rs = connection.createStatement().executeQuery(
-                "SELECT * FROM userstable")) {
+        try (ResultSet rs = connection.createStatement().executeQuery("SELECT * FROM userstable")) {
             while (rs.next()) {
                 User user = new User();
                 user.setId(rs.getLong("id"));
