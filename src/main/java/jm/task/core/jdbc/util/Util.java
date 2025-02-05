@@ -1,5 +1,9 @@
 package jm.task.core.jdbc.util;
 
+import jm.task.core.jdbc.model.User;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -12,7 +16,8 @@ public class Util {
     private static final String USERNAME = "root";
     private static final String PASSWORD = "0000";
 
-    private Util (){}
+    private Util() {
+    }
 
     public static Connection establishConnection() {
         try {
@@ -24,4 +29,25 @@ public class Util {
         }
         return null;
     }
+
+    private static final SessionFactory sessionFactory = buildSessionFactory();
+
+    private static SessionFactory buildSessionFactory() {
+        try {
+            Configuration configuration = new Configuration()
+                    .configure()  // Загружает настройки из hibernate.cfg.xml
+                    .addAnnotatedClass(User.class); // Регистрируем сущность User
+
+            logger.log(Level.INFO, "Building Hibernate SessionFactory");
+            return configuration.buildSessionFactory();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Initial SessionFactory creation failed.", e);
+        }
+        return null;
+    }
+
+    public static SessionFactory getSessionFactory() {
+        return sessionFactory;
+    }
 }
+
